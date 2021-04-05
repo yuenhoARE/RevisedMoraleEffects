@@ -177,7 +177,7 @@ qui xtreg prodnorm posttreat lowpost medpost highpost irrelpostlow irrelpostmed 
 est sto  treg5p
 
 qui xtreg attendance posttreat lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh $neighbor_post_noT $neighbor_post i.day_round exper_task_lin* exper_task_sq*  if (day_centered<0 | (day_centered>=second_post_pay)), fe cl(team_id)	
-est sto	 reg6p
+est sto	 treg6p
 
 esttab treg1p treg3p treg5p treg2p treg4p treg6p, stats(r2 N, labels("R-squared" "N")) se(3) replace starlevels(* 0.10 ** 0.05 *** .01) keep(posttreat)
 
@@ -908,19 +908,19 @@ twoway line day_prod2 day_centered_cal if rank==3 & day_centered>=-10 & day_cent
 
 ******************* Online Appendix Figure 2: Total Attendance for Pay Disparity and Compressed Units ********************
 twoway (kdensity fracpresentpost_bc if Het==1 & relevant==1 & day_centered==0, lpattern(dash))(kdensity fracpresentpost_bc if Het==0 & relevant==1 & day_centered==0), legend(order(1 "Pay Disparity" 2 "Compressed" )) xtitle("Fraction of days present in post-wage change period") ytitle("Density")
-graph export "$dir/Results/$date/AOFigure2.png", replace
+graph export "Results/AOFigure2.png", replace
 
 ******************* Online Appendix Figure 3: Density of Raw Production by Task, Scaled by Mean *************************
 forvalues i=1/10 {
 twoway kdensity prod_meanscale if taskid_rank==`i' & attendance==1 & day_centered>-7 & day_centered<0, ytitle("Kernel Density", size(large)) xlabel(0(0.5)3, labsize(medlarge)) ylabel(0(0.2)1, labsize(medlarge)) ysc(r(0 1.1)) xsc(r(0 3)) xtitle("Raw Production Scaled by Task Mean", size(large)) 
 * saving("$dir/Results/$date/plot`i'.png", replace)
-graph export "$dir/Results/$date/AOFigure3_plot`i'.png", replace
+graph export "Results/AOFigure3_plot`i'.png", replace
 }	
 
 ******** Online Appendix Figure 5: Distribution of Village Prevailing Wages: Endline Survey Responses **********************
 label var endlinewage_norm "Village wage - Training wage"
 twoway (histogram endlinewage_norm if day_centered==0 & endlinewage~=., frac width(10) start(-150))
-graph export "$dir/Results/$date/AOFigure5.png", replace
+graph export "Results/AOFigure5.png", replace
 
 
 
