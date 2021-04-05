@@ -124,7 +124,7 @@ est sto reg3
 qui xtreg attendance posttreat lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh $neighbor_post_noT $neighbor_post i.day_round exper_task_lin* exper_task_sq*, fe cl(team_id)
 est sto reg4
 
-* condl on attendance - no FE
+* conditional on attendance - no FE
 qui reg prodnorm posttreat lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh low_p med_p high_p treatlow treatmed treathigh irrellow irrelmed irrelhigh  i.day_round exper_task_lin* exper_task_sq* i.task_id $neighbor_all if attendance==1, cl(team_id)
 est sto reg5 
 
@@ -145,7 +145,7 @@ est sto reg8
 qui xtreg attendance treatlowpost treatmedpost treathighpost lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh $neighbor_post_noT $neighbor_post i.day_round exper_task_lin* exper_task_sq*, fe cl(team_id)
 est sto reg9
 
-* condl on attendance - no FE
+* conditional on attendance - no FE
 qui reg prodnorm treatlowpost treatmedpost treathighpost lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh low_p med_p high_p treatlow treatmed treathigh irrellow irrelmed irrelhigh  i.day_round exper_task_lin* exper_task_sq* i.task_id $neighbor_all if attendance==1, cl(team_id)
 est sto reg10 
 
@@ -597,14 +597,14 @@ est sto pdiffr1
 qui xtreg attendance posttreat Het_largediff_post largediff_post treathighpost lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh  lowpost_diffup_large medpost_diffup_large irrelpostlow_largediff irrelpostmed_largediff lowpost_ownpre medpost_ownpre highpost_ownpre i.day_round exper_task_lin* exper_task_sq* $neighbor_post_noT $neighbor_post, fe cl(team_id)
 est sto pdiffr2
 
-** Flexibly control for the low guy being in the bottom 10% of the overall baseline dn
+** Flexibly control for the low guy being in the bottom 10% of the overall baseline distribution
 qui xtreg prodnorm posttreat Het_largediff_post largediff_post treathighpost lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh  lowpost_diffup_large medpost_diffup_large irrelpostlow_largediff irrelpostmed_largediff *_ownb10_low_p6 i.day_round exper_task_lin* exper_task_sq* $neighbor_post_noT $neighbor_post, fe cl(team_id)
 est sto pdiffr3
 
 qui xtreg attendance posttreat Het_largediff_post largediff_post treathighpost lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh  lowpost_diffup_large medpost_diffup_large irrelpostlow_largediff irrelpostmed_largediff *_ownb10_low_p6 i.day_round exper_task_lin* exper_task_sq* $neighbor_post_noT $neighbor_post, fe cl(team_id)
 est sto pdiffr4
 
-* Own preprod 
+* Own preproduction 
 qui xtreg prodnorm posttreat Het_largediff_post largediff_post treathighpost lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh  lowpost_diffup_large medpost_diffup_large irrelpostlow_largediff irrelpostmed_largediff *_ownpre_p6 i.day_round exper_task_lin* exper_task_sq* $neighbor_post_noT $neighbor_post, fe cl(team_id)
 est sto pdiffr5
 
@@ -665,6 +665,7 @@ esttab obsrobr_p_1 obsrobr_p_3 obsrobr_p_4 obsrobr_p_5 obsrobr_p_6 obsrobr_p_8 o
 esttab obsrobr_a_1 obsrobr_a_3 obsrobr_a_4 obsrobr_a_5 obsrobr_a_6 obsrobr_a_8 obsrobr_a_9 obsrobr_a_10 obsrobr_a_11 obsrobr_a_12, stats(r2 N, labels("R-squared" "N")) se(3) replace starlevels(* 0.10 ** 0.05 *** .01) keep(posttreat Het_obs_post)
 
 * esttab obsrobr_p_1 obsrobr_p_3 obsrobr_p_4 obsrobr_p_5 obsrobr_p_6 obsrobr_p_8 obsrobr_p_9 obsrobr_p_10 obsrobr_p_11 obsrobr_p_12  using "$dir/Results/$date/OATable6_1.csv", stats(r2 N, labels("R-squared" "N")) se(3) replace starlevels(* 0.10 ** 0.05 *** .01) keep(posttreat Het_obs_post)
+
 * esttab obsrobr_a_1 obsrobr_a_3 obsrobr_a_4 obsrobr_a_5 obsrobr_a_6 obsrobr_a_8 obsrobr_a_9 obsrobr_a_10 obsrobr_a_11 obsrobr_a_12  using "$dir/Results/$date/OATable6_2.csv", stats(r2 N, labels("R-squared" "N")) se(3) replace starlevels(* 0.10 ** 0.05 *** .01) keep(posttreat Het_obs_post)
 
 
