@@ -1,0 +1,36 @@
+---
+title: 'Replication Code: The Morale Effects of Pay Inequality (Breza, Kaur, and Shamdasani)'
+author: "Replication Code by Yuen Ho"
+date: "4/5/2021"
+header-includes:
+  - \usepackage{float}
+  - \floatplacement{figure}{H}
+  - \usepackage{amsmath}
+output: pdf_document
+fig_caption: yes
+geometry: margin = 1.5cm
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#==================
+# Section 0: Set Up
+#==================
+
+# Clear workspace
+rm(list = ls())
+
+# Load packages
+library(pacman)
+p_load(zoo, haven, data.table, dplyr, foreign, tidyr, xtable, broom, stringr, ggplot2, plm, lmtest, sandwhich, stargazer)
+
+# Directory
+# Set working directory
+base_directory <- "/Users/yuen/Documents/GitHub/RevisedMoraleEffects/"
+
+# read data
+final <- as.data.table(read_dta(paste0(base_directory, "finaldataset.dta")))
+el_games1 <- as.data.table(read_dta(paste0(base_directory, "el_games1.dta")))
+el_games2 <- as.data.table(read_dta(paste0(base_directory, "el_games2.dta")))
+```
