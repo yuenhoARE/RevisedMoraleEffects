@@ -549,7 +549,7 @@ est sto rreg5
 qui xtreg attendance treatlowpost treatmedpost treathighpost lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh $neighbor_post_noT $neighbor_post i.day_round exper_task_lin* exper_task_sq*, fe cl(team_id)
 est sto rreg6
 
-** Post period only: Add basleine controls for production and attendance
+** Post period only: Add baseline controls for production and attendance
 qui reg prodnorm treatlowpost treatmedpost treathighpost lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh $neighbor_pre_noT $neighbor_pre i.day_round exper_task_lin* exper_task_sq* baselineprod i.task_id if day_centered>=0, cl(team_id)
 est sto rreg7
 qui reg attendance treatlowpost treatmedpost treathighpost lowpost medpost highpost irrelpostlow irrelpostmed irrelposthigh $neighbor_pre_noT $neighbor_pre i.day_round exper_task_lin* exper_task_sq* baselineatt i.task_id if day_centered>=0, cl(team_id)

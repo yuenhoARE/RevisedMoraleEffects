@@ -23,7 +23,7 @@ rm(list = ls())
 
 # Load packages
 library(pacman)
-p_load(zoo, haven, data.table, dplyr, foreign, tidyr, xtable, broom, stringr, ggplot2, plm, lmtest, sandwhich, stargazer)
+p_load(zoo, haven, data.table, dplyr, foreign, tidyr, xtable, broom, stringr, ggplot2, plm, lmtest, sandwich, stargazer, miceadds, multiwayvcov)
 
 # Directory
 # Set working directory
@@ -33,4 +33,266 @@ base_directory <- "/Users/yuen/Documents/GitHub/RevisedMoraleEffects/"
 final <- as.data.table(read_dta(paste0(base_directory, "finaldataset.dta")))
 el_games1 <- as.data.table(read_dta(paste0(base_directory, "el_games1.dta")))
 el_games2 <- as.data.table(read_dta(paste0(base_directory, "el_games2.dta")))
+
+# Convert relevant variables into factor variables
+final[,task_id := as_factor(task_id)]
+final[,day_round := as_factor(day_round)]
+final[, team_id := as_factor(team_id)]
+
+## Create variable vectors
+# Vector with all neighbor controls
+neighbor_all <- final %>% select(starts_with("neighbor"))
+neighbor_all <- colnames(neighbor_all)
+
+# Vector with neighbor post no treatment controls
+neighbor_post_noT <- final %>% select(starts_with("neighbor_pn_"))
+neighbor_post_noT <- colnames(neighbor_post_noT)
+
+# Vector with all neighbor post controls
+neighbor_post <- final %>% select(starts_with("neighbor_pt_"))
+neighbor_post <- colnames(neighbor_post)
+
+# Vector with all linear experience task controls
+exper_task_lin <- final %>% select(starts_with("exper_task_lin"))
+exper_task_lin <- colnames(exper_task_lin)
+
+# Vector with squared experience task controls
+exper_task_sq <- final %>% select(starts_with("exper_task_sq"))
+exper_task_sq <- colnames(exper_task_sq)
+
+# Vector with neighbor pre - low controls
+neighbor_pre_l <- final %>% select(starts_with("neighbor_l"))
+neighbor_pre_l <- colnames(neighbor_pre_l)
+
+# Vector with neighbor pre - med controls
+neighbor_pre_m <- final %>% select(starts_with("neighbor_m"))
+neighbor_pre_m <- colnames(neighbor_pre_m)
+
+# Vector with neighbor pre - high controls
+neighbor_pre_h <- final %>% select(starts_with("neighbor_h"))
+neighbor_pre_h <- colnames(neighbor_pre_h)
+```
+
+```{r Table 4, results = 'asis', echo = FALSE, fig.align = "center", fig.width = 6, fig.height = 4, warning = FALSE}
+#==================================
+# Table 4: Effects of Pay Disparity
+#==================================
+### Panel A: Pooled Treatment Effects
+## Without FE
+x <- c("posttreat", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "low_p", "med_p", "high_p", "treatlow", "treatmed", "treathigh", "irrellow", "irrelmed", "irrelhigh", "day_round", exper_task_lin, exper_task_sq, "task_id", neighbor_all)
+x <- paste(x, collapse = "+")
+
+# dependent variable = output
+reg1 <- lm(formula(paste0("prodnorm", "~",x)), data = final)
+vcov_teamid <- cluster.vcov(reg1, final$team_id)
+reg1_cluster <- coeftest(reg1, vcov_teamid)
+
+# dependent variable = attendance
+reg2 <- lm(formula(paste0("attendance", "~", x)), data = final)
+vcov_teamid <- cluster.vcov(reg2, final$team_id)
+reg2_cluster <- coeftest(reg2, vcov_teamid)
+
+## With FE
+x <- c("posttreat", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", neighbor_post_noT, neighbor_post, "day_round", exper_task_lin, exper_task_sq)
+x <- paste(x, collapse = "+")
+
+# dependent variable = output
+reg3 <- lm(formula(paste0("prodnorm","~",x,"+ factor(uid)")), data = final)
+vcov_teamid <- cluster.vcov(reg3, final$team_id, stata_fe_model_rank = TRUE)
+reg3_cluster <- coeftest(reg3, vcov_teamid)
+
+# dependent variable = attendance
+reg4 <- lm(formula(paste0("attendance","~",x,"+ factor(uid)")), data = final)
+vcov_teamid <- cluster.vcov(reg4, final$team_id, stata_fe_model_rank = TRUE)
+reg4_cluster <- coeftest(reg4, vcov_teamid)
+
+# conditional on attendance - no FE
+x <- c("posttreat", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "low_p", "med_p", "high_p", "treatlow", "treatmed", "treathigh", "irrellow", "irrelmed", "irrelhigh", "day_round", exper_task_lin, exper_task_sq, "task_id", neighbor_all)
+x <- paste(x, collapse = "+")
+
+reg5 <- lm(formula(paste0("prodnorm", "~", x)), data=final[attendance == 1,])
+vcov_teamid <- cluster.vcov(reg5, final[attendance == 1, team_id])
+reg5_cluster <- coeftest(reg5, vcov_teamid)
+
+# combine models into latex table
+stargazer(reg1_cluster, reg2_cluster, reg3_cluster, reg4_cluster, reg5_cluster, type = "latex", keep = "posttreat", header = FALSE, title = "Table 4: Panel A")
+
+### Panel B: Treatment Effects Separately by Rank
+## Without FE
+x <- c("treatlowpost", "treatmedpost", "treathighpost", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "low_p", "med_p", "high_p", "treatlow", "treatmed", "treathigh", "irrellow", "irrelmed", "irrelhigh", "day_round", exper_task_lin, exper_task_sq, "task_id", neighbor_all)
+x <- paste(x, collapse = "+")
+
+# dependent variable = output
+reg6 <- lm(formula(paste0("prodnorm", "~",x)), data = final)
+vcov_teamid <- cluster.vcov(reg6, final$team_id)
+reg6_cluster <- coeftest(reg6, vcov_teamid)
+
+# dependent variable = attendance
+reg7 <- lm(formula(paste0("attendance", "~",x)), data = final)
+vcov_teamid <- cluster.vcov(reg7, final$team_id)
+reg7_cluster <- coeftest(reg7, vcov_teamid)
+
+## With FE
+x <- c("treatlowpost", "treatmedpost", "treathighpost", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", neighbor_post_noT, neighbor_post, "day_round", exper_task_lin, exper_task_sq)
+x <- paste(x, collapse = "+")
+
+# dependent variable = output
+reg8 <- lm(formula(paste0("prodnorm","~",x,"+ factor(uid)")), data = final)
+vcov_teamid <- cluster.vcov(reg8, final$team_id, stata_fe_model_rank = TRUE)
+reg8_cluster <- coeftest(reg8, vcov_teamid)
+
+# dependent variable = attendance
+reg9 <- lm(formula(paste0("attendance","~",x,"+ factor(uid)")), data = final)
+vcov_teamid <- cluster.vcov(reg9, final$team_id, stata_fe_model_rank = TRUE)
+reg9_cluster <- coeftest(reg9, vcov_teamid)
+
+# conditional on attendance - no FE
+x <- c("treatlowpost", "treatmedpost", "treathighpost", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "low_p", "med_p", "high_p", "treatlow", "treatmed", "treathigh", "irrellow", "irrelmed", "irrelhigh", "day_round", exper_task_lin, exper_task_sq, "task_id", neighbor_all)
+x <- paste(x, collapse = "+")
+
+reg10 <- lm(formula(paste0("prodnorm", "~", x)), data=final[attendance == 1,])
+vcov_teamid <- cluster.vcov(reg10, final[attendance == 1, team_id])
+reg10_cluster <- coeftest(reg10, vcov_teamid)
+
+# Calculate post treatment compressed mean
+mean(final[post == 1 & Het == 0 & relevant == 1, prodnorm])
+mean(final[post == 1 & Het == 0 & relevant == 1, attendance])
+mean(final[post == 1 & Het == 0 & relevant == 1 & attendance == 1, prodnorm])
+
+# combine models into latex table
+stargazer(reg6_cluster, reg7_cluster, reg8_cluster, reg9_cluster, reg10_cluster, type = "latex", keep = c("treatlowpost", "treatmedpost", "treathighpost"), header = FALSE, title = "Table 4: Panel B")
+```
+```{r Table A2, results = 'asis', echo = FALSE, fig.align = "center", fig.width = 6, fig.height = 4, warning = FALSE}
+#===========================================================================
+# Table A2: Effects of Pay Disparity: Robustness to Alternate specifications
+#===========================================================================
+### Panel A — Pooled Treatment Effects
+## No irrelevant people, no neighbor controls
+x <- c("posttreat", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "day_round", exper_task_lin, exper_task_sq)
+x <- paste(x, collapse = "+")
+
+# outcome variable = output
+rreg1p <- lm(formula(paste0("prodnorm","~",x,"+ factor(uid)")), data = final[relevant == 1,])
+vcov_teamid <- cluster.vcov(rreg1p, final[relevant == 1, team_id], stata_fe_model_rank = TRUE)
+rreg1p_cluster <- coeftest(rreg1p, vcov_teamid)
+
+# outcome variable = attendance
+rreg2p <- lm(formula(paste0("attendance","~",x,"+ factor(uid)")), data = final[relevant == 1,])
+vcov_teamid <- cluster.vcov(rreg2p, final[relevant == 1,team_id], stata_fe_model_rank = TRUE)
+rreg2p_cluster <- coeftest(rreg2p, vcov_teamid)
+
+## No irrelevant people, add in neighbor controls
+x <- c("posttreat", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", neighbor_post_noT, neighbor_post, "day_round", exper_task_lin, exper_task_sq)
+x <- paste(x, collapse = "+")
+
+# outcome variable = output
+rreg3p <- lm(formula(paste0("prodnorm","~",x,"+ factor(uid)")), data = final[relevant == 1,])
+vcov_teamid <- cluster.vcov(rreg3p, final[relevant == 1, team_id], stata_fe_model_rank = TRUE)
+rreg3p_cluster <- coeftest(rreg3p, vcov_teamid)
+
+# outcome variable = attendance
+rreg4p <- lm(formula(paste0("attendance","~",x,"+ factor(uid)")), data = final[relevant == 1,])
+vcov_teamid <- cluster.vcov(rreg4p, final[relevant == 1, team_id], stata_fe_model_rank = TRUE)
+rreg4p_cluster <- coeftest(rreg4p, vcov_teamid)
+
+## Main specification
+x <- c("posttreat", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", neighbor_post_noT, neighbor_post, "day_round", exper_task_lin, exper_task_sq)
+x <- paste(x, collapse = "+")
+
+# outcome variable = output
+rreg5p <- lm(formula(paste0("prodnorm","~",x,"+ factor(uid)")), data = final)
+vcov_teamid <- cluster.vcov(rreg5p, final$team_id, stata_fe_model_rank = TRUE)
+rreg5p_cluster <- coeftest(rreg5p, vcov_teamid)
+
+# outcome variable = attendance
+rreg6p <- lm(formula(paste0("attendance","~",x,"+ factor(uid)")), data = final)
+vcov_teamid <- cluster.vcov(rreg6p, final$team_id, stata_fe_model_rank = TRUE)
+rreg6p_cluster <- coeftest(rreg6p, vcov_teamid)
+
+## Post period only: Add baseline controls for production and attendance
+# outcome variable = output
+x <- c("posttreat", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "day_round", exper_task_lin, exper_task_sq, "baselineprod", "task_id", neighbor_pre_l, neighbor_pre_m, neighbor_pre_h)
+x <- paste(x, collapse = "+")
+
+rreg7p <- lm(formula(paste0("prodnorm","~",x)), data = final[day_centered >= 0,])
+vcov_teamid <- cluster.vcov(rreg7p, final[day_centered >= 0, team_id], stata_fe_model_rank = TRUE)
+rreg7p_cluster <- coeftest(rreg7p, vcov_teamid)
+
+# outcome variable = attendance
+x <- c("posttreat", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "day_round", exper_task_lin, exper_task_sq, "baselineatt", "task_id", neighbor_pre_l, neighbor_pre_m, neighbor_pre_h)
+x <- paste(x, collapse = "+")
+
+rreg8p <- lm(formula(paste0("attendance","~",x)), data = final[day_centered >= 0,])
+vcov_teamid <- cluster.vcov(rreg8p, final[day_centered >= 0, team_id], stata_fe_model_rank = TRUE)
+rreg8p_cluster <- coeftest(rreg8p, vcov_teamid)
+
+# combine models into latex table
+stargazer(rreg1p_cluster, rreg2p_cluster, rreg3p_cluster, rreg4p_cluster, rreg5p_cluster, rreg6p_cluster, rreg7p_cluster, rreg8p_cluster, type = "latex", keep = c("posttreat"), header = FALSE, title = "Table A2: Panel A")
+
+### Panel B — Treatment Effects Separately by Rank
+## No irrelevant people, no neighbor controls
+x <- c("treatlowpost", "treatmedpost", "treathighpost", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "day_round", exper_task_lin, exper_task_sq)
+x <- paste(x, collapse = "+")
+
+# outcome variable = output
+rreg1 <- lm(formula(paste0("prodnorm","~",x,"+ factor(uid)")), data = final[relevant == 1,])
+vcov_teamid <- cluster.vcov(rreg1, final[relevant == 1, team_id], stata_fe_model_rank = TRUE)
+rreg1_cluster <- coeftest(rreg1, vcov_teamid)
+
+# outcome variable = attendance
+rreg2 <- lm(formula(paste0("attendance","~",x,"+ factor(uid)")), data = final[relevant == 1,])
+vcov_teamid <- cluster.vcov(rreg2, final[relevant == 1, team_id], stata_fe_model_rank = TRUE)
+rreg2_cluster <- coeftest(rreg2, vcov_teamid)
+
+## No irrelevant people, add in neighbor controls
+x <- c("treatlowpost", "treatmedpost", "treathighpost", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", neighbor_post_noT, neighbor_post, "day_round", exper_task_lin, exper_task_sq)
+x <- paste(x, collapse = "+")
+
+# outcome variable = output
+rreg3 <- lm(formula(paste0("prodnorm","~",x,"+ factor(uid)")), data = final[relevant == 1,])
+vcov_teamid <- cluster.vcov(rreg3, final[relevant == 1, team_id], stata_fe_model_rank = TRUE)
+rreg3_cluster <- coeftest(rreg3, vcov_teamid)
+
+# outcome variable = attendance
+rreg4 <- lm(formula(paste0("attendance","~",x,"+ factor(uid)")), data = final[relevant == 1,])
+vcov_teamid <- cluster.vcov(rreg4, final[relevant == 1, team_id], stata_fe_model_rank = TRUE)
+rreg4_cluster <- coeftest(rreg4, vcov_teamid)
+
+## Main specification
+x <- c("treatlowpost", "treatmedpost", "treathighpost", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", neighbor_post_noT, neighbor_post, "day_round", exper_task_lin, exper_task_sq)
+x <- paste(x, collapse = "+")
+
+# outcome variable = output
+rreg5 <- lm(formula(paste0("prodnorm","~",x,"+ factor(uid)")), data = final)
+vcov_teamid <- cluster.vcov(rreg5, final$team_id, stata_fe_model_rank = TRUE)
+rreg5_cluster <- coeftest(rreg5, vcov_teamid)
+
+# outcome variable = attendance
+rreg6 <- lm(formula(paste0("attendance","~",x,"+ factor(uid)")), data = final)
+vcov_teamid <- cluster.vcov(rreg6, final$team_id, stata_fe_model_rank = TRUE)
+rreg6_cluster <- coeftest(rreg6, vcov_teamid)
+
+## Post period only: Add baseline controls for production and attendance
+# outcome variable = output
+x <- c("treatlowpost", "treatmedpost", "treathighpost", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "day_round", exper_task_lin, exper_task_sq, "baselineprod", "task_id", neighbor_pre_l, neighbor_pre_m, neighbor_pre_h)
+x <- paste(x, collapse = "+")
+
+rreg7 <- lm(formula(paste0("prodnorm", "~",x)), data = final[day_centered >= 0,])
+vcov_teamid <- cluster.vcov(rreg7, final[day_centered >= 0, team_id], stata_fe_model_rank = TRUE)
+rreg7_cluster <- coeftest(rreg7, vcov_teamid)
+
+# outcome variable = attendance
+x <- c("treatlowpost", "treatmedpost", "treathighpost", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "day_round", exper_task_lin, exper_task_sq, "baselineatt", "task_id", neighbor_pre_l, neighbor_pre_m, neighbor_pre_h)
+x <- paste(x, collapse = "+")
+
+rreg8 <- lm(formula(paste0("attendance", "~",x)), data = final[day_centered >= 0,])
+vcov_teamid <- cluster.vcov(rreg8, final[day_centered >= 0, team_id], stata_fe_model_rank = TRUE)
+rreg8_cluster <- coeftest(rreg8, vcov_teamid)
+
+# Calculate post-treatment compressed mean
+mean(final[post == 1 & Het == 0 & relevant == 1, prodnorm])
+mean(final[post == 1 & Het == 0 & relevant == 1, attendance])
+
+# combine models into latex table
+stargazer(rreg1_cluster, rreg2_cluster, rreg3_cluster, rreg4_cluster, rreg5_cluster, rreg6_cluster, rreg7_cluster, rreg8_cluster, type = "latex", keep = c("treatlowpost", "treatmedpost", "treathighpost"), header = FALSE, title = "Table A2: Panel B")
 ```
