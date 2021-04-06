@@ -1,13 +1,15 @@
 ---
-title: 'Replication Code: The Morale Effects of Pay Inequality (Breza, Kaur, and Shamdasani)'
-author: "Replication Code by Yuen Ho"
+title: 'The Morale Effects of Pay Inequality (Breza, Kaur, and Shamdasani)'
+author: "R Replication Code for Table V and Table A.II by Yuen Ho"
 date: "4/5/2021"
 header-includes:
   - \usepackage{float}
   - \floatplacement{figure}{H}
   - \usepackage{amsmath}
+  - \usepackage{caption}
+  - \captionsetup[table]{labelformat = empty}
 output: pdf_document
-fig_caption: yes
+fig_caption: No
 geometry: margin = 1.5cm
 ---
 
@@ -23,7 +25,7 @@ rm(list = ls())
 
 # Load packages
 library(pacman)
-p_load(zoo, haven, data.table, dplyr, foreign, tidyr, xtable, broom, stringr, ggplot2, plm, lmtest, sandwich, stargazer, miceadds, multiwayvcov)
+p_load(zoo, haven, data.table, dplyr, foreign, tidyr, xtable, broom, stringr, ggplot2, plm, lmtest, sandwich, stargazer, miceadds, multiwayvcov, knitr, kableExtra)
 
 # Directory
 # Set working directory
@@ -73,7 +75,7 @@ neighbor_pre_h <- final %>% select(starts_with("neighbor_h"))
 neighbor_pre_h <- colnames(neighbor_pre_h)
 ```
 
-```{r Table 4, results = 'asis', echo = FALSE, fig.align = "center", fig.width = 6, fig.height = 4, warning = FALSE}
+```{r Table 4, results = 'asis', echo = FALSE, fig.align = "center", out.width = 6, out.height = 4, warning = FALSE}
 #==================================
 # Table 4: Effects of Pay Disparity
 #==================================
@@ -115,7 +117,7 @@ vcov_teamid <- cluster.vcov(reg5, final[attendance == 1, team_id])
 reg5_cluster <- coeftest(reg5, vcov_teamid)
 
 # combine models into latex table
-stargazer(reg1_cluster, reg2_cluster, reg3_cluster, reg4_cluster, reg5_cluster, type = "latex", keep = "posttreat", header = FALSE, title = "Table 4: Panel A")
+stargazer(reg1_cluster, reg2_cluster, reg3_cluster, reg4_cluster, reg5_cluster, type = "latex", keep = "posttreat", header = FALSE, title = "Table 4: Panel A", dep.var.caption = "", column.labels = c("Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output | Attendance"), table.placement = "H")
 
 ### Panel B: Treatment Effects Separately by Rank
 ## Without FE
@@ -155,14 +157,20 @@ vcov_teamid <- cluster.vcov(reg10, final[attendance == 1, team_id])
 reg10_cluster <- coeftest(reg10, vcov_teamid)
 
 # Calculate post treatment compressed mean
-mean(final[post == 1 & Het == 0 & relevant == 1, prodnorm])
-mean(final[post == 1 & Het == 0 & relevant == 1, attendance])
-mean(final[post == 1 & Het == 0 & relevant == 1 & attendance == 1, prodnorm])
+mean_pt_prodnorm <- mean(final[post == 1 & Het == 0 & relevant == 1, prodnorm])
+mean_pt_attendance <- mean(final[post == 1 & Het == 0 & relevant == 1, attendance])
+mean_pt_attend_prodnorm <- mean(final[post == 1 & Het == 0 & relevant == 1 & attendance == 1, prodnorm])
 
 # combine models into latex table
-stargazer(reg6_cluster, reg7_cluster, reg8_cluster, reg9_cluster, reg10_cluster, type = "latex", keep = c("treatlowpost", "treatmedpost", "treathighpost"), header = FALSE, title = "Table 4: Panel B")
+stargazer(reg6_cluster, reg7_cluster, reg8_cluster, reg9_cluster, reg10_cluster, type = "latex", keep = c("treatlowpost", "treatmedpost", "treathighpost"), header = FALSE, title = "Table 4: Panel B", dep.var.caption = "", column.labels = c("Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output | Attendance"), table.placement = "H")
 ```
-```{r Table A2, results = 'asis', echo = FALSE, fig.align = "center", fig.width = 6, fig.height = 4, warning = FALSE}
+The post treatment compressed mean for output is `r round(mean_pt_prodnorm,3)` standard deviations; for attendance is `r round(mean_pt_attendance,3)` standard deviations; and for output conditional on attendance is `r round(mean_pt_attend_prodnorm,3)` standard deviations.
+
+\bigskip
+\noindent
+Note that the above code does not exactly replicate the clustered standard errors in the fixed effects models reported in the paper and in the original replication code provided in Stata. However, the clustered standard errors produced by this replication code are qualitatively comparable and are identical up to 2 decimal places. 
+
+```{r Table A2, results = 'asis', echo = FALSE, fig.align = "center", out.width = 6, out.height = 4, warning = FALSE}
 #===========================================================================
 # Table A2: Effects of Pay Disparity: Robustness to Alternate specifications
 #===========================================================================
@@ -227,7 +235,7 @@ vcov_teamid <- cluster.vcov(rreg8p, final[day_centered >= 0, team_id], stata_fe_
 rreg8p_cluster <- coeftest(rreg8p, vcov_teamid)
 
 # combine models into latex table
-stargazer(rreg1p_cluster, rreg2p_cluster, rreg3p_cluster, rreg4p_cluster, rreg5p_cluster, rreg6p_cluster, rreg7p_cluster, rreg8p_cluster, type = "latex", keep = c("posttreat"), header = FALSE, title = "Table A2: Panel A")
+stargazer(rreg1p_cluster, rreg2p_cluster, rreg3p_cluster, rreg4p_cluster, rreg5p_cluster, rreg6p_cluster, rreg7p_cluster, rreg8p_cluster, type = "latex", keep = c("posttreat"), header = FALSE, title = "Table A2: Panel A", dep.var.caption = "", column.labels = c("Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance"), table.placement = "H")
 
 ### Panel B — Treatment Effects Separately by Rank
 ## No irrelevant people, no neighbor controls
@@ -290,9 +298,13 @@ vcov_teamid <- cluster.vcov(rreg8, final[day_centered >= 0, team_id], stata_fe_m
 rreg8_cluster <- coeftest(rreg8, vcov_teamid)
 
 # Calculate post-treatment compressed mean
-mean(final[post == 1 & Het == 0 & relevant == 1, prodnorm])
-mean(final[post == 1 & Het == 0 & relevant == 1, attendance])
+mean_pt_prodnorm <- mean(final[post == 1 & Het == 0 & relevant == 1, prodnorm])
+mean_pt_attendance <- mean(final[post == 1 & Het == 0 & relevant == 1, attendance])
 
 # combine models into latex table
-stargazer(rreg1_cluster, rreg2_cluster, rreg3_cluster, rreg4_cluster, rreg5_cluster, rreg6_cluster, rreg7_cluster, rreg8_cluster, type = "latex", keep = c("treatlowpost", "treatmedpost", "treathighpost"), header = FALSE, title = "Table A2: Panel B")
+stargazer(rreg1_cluster, rreg2_cluster, rreg3_cluster, rreg4_cluster, rreg5_cluster, rreg6_cluster, rreg7_cluster, rreg8_cluster, type = "latex", keep = c("treatlowpost", "treatmedpost", "treathighpost"), header = FALSE, title = "Table A2: Panel B", dep.var.caption = "", column.labels = c("Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance"), table.placement = "H")
 ```
+
+\bigskip
+\noindent
+Also note that the original replication code provided in Stata contained a minor error that caused the code to not replicate columns (7) and (8) in Table A.II. Specifically, the Globals "neighbor_pre_noT" and "neighbor_pre" were not defined in the original replication code but were supposed to be included in the specifications for (7) and (8). This replication code corrects this error and successfully replicates the original results reported Table A.II Columns (7) and (8) in the published Appendix. 
