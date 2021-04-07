@@ -19,9 +19,9 @@ el_games1 <- as.data.table(read_dta(paste0(base_directory, "el_games1.dta")))
 el_games2 <- as.data.table(read_dta(paste0(base_directory, "el_games2.dta")))
 
 # Convert relevant variables into factor variables
-final[,task_id := as_factor(task_id)]
-final[,day_round := as_factor(day_round)]
-final[, team_id := as_factor(team_id)]
+final[,task_id := as.factor(task_id)]
+final[,day_round := as.factor(day_round)]
+final[, team_id := as.factor(team_id)]
 
 ## Create variable vectors
 # Vector with all neighbor controls
@@ -97,7 +97,7 @@ vcov_teamid <- cluster.vcov(reg5, final[attendance == 1, team_id])
 reg5_cluster <- coeftest(reg5, vcov_teamid)
 
 # combine models into latex table
-stargazer(reg1_cluster, reg2_cluster, reg3_cluster, reg4_cluster, reg5_cluster, type = "latex", keep = "posttreat", header = FALSE, title = "Table 4: Panel A", dep.var.caption = "", column.labels = c("Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output | Attendance"))
+stargazer(reg1_cluster, reg2_cluster, reg3_cluster, reg4_cluster, reg5_cluster, type = "latex", keep = "posttreat", header = FALSE, title = "Table 4: Panel A", dep.var.caption = "", column.labels = c("Output", "Attendance", "Output", "Attendance", "Output|Att"), table.placement = "H", add.lines=list(c('Individual Fixed effects', 'No', 'No', 'Yes', 'Yes', 'No'), c('N','8,375','8,375','8,375','8,375','7.678')))
 
 ### Panel B: Treatment Effects Separately by Rank
 ## Without FE
@@ -142,7 +142,7 @@ mean(final[post == 1 & Het == 0 & relevant == 1, attendance])
 mean(final[post == 1 & Het == 0 & relevant == 1 & attendance == 1, prodnorm])
 
 # combine models into latex table
-stargazer(reg6_cluster, reg7_cluster, reg8_cluster, reg9_cluster, reg10_cluster, type = "latex", keep = c("treatlowpost", "treatmedpost", "treathighpost"), header = FALSE, title = "Table 4: Panel B", dep.var.caption = "", column.labels = c("Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output | Attendance"))
+stargazer(reg6_cluster, reg7_cluster, reg8_cluster, reg9_cluster, reg10_cluster, type = "latex", keep = c("treatlowpost", "treatmedpost", "treathighpost"), header = FALSE, title = "Table 4: Panel B", dep.var.caption = "", column.labels = c("Output", "Attendance", "Output", "Attendance", "Output|Att"), table.placement = "H", add.lines=list(c('Individual Fixed effects', 'No', 'No', 'Yes', 'Yes', 'No'), c('N','8,375','8,375','8,375','8,375','7.678')))
 
 #===========================================================================
 # Table A2: Effects of Pay Disparity: Robustness to Alternate specifications
@@ -208,7 +208,7 @@ vcov_teamid <- cluster.vcov(rreg8p, final[day_centered >= 0, team_id], stata_fe_
 rreg8p_cluster <- coeftest(rreg8p, vcov_teamid)
 
 # combine models into latex table
-stargazer(rreg1p_cluster, rreg2p_cluster, rreg3p_cluster, rreg4p_cluster, rreg5p_cluster, rreg6p_cluster, rreg7p_cluster, rreg8p_cluster, type = "latex", keep = c("posttreat"), header = FALSE, title = "Table A2: Panel A", dep.var.caption = "", column.labels = c("Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance"))
+stargazer(rreg1p_cluster, rreg2p_cluster, rreg3p_cluster, rreg4p_cluster, rreg5p_cluster, rreg6p_cluster, rreg7p_cluster, rreg8p_cluster, type = "latex", keep = c("posttreat"), header = FALSE, title = "Table A2: Panel A", dep.var.caption = "", column.labels = c("Output", "Attendance", "Output", "Attendance", "Output", "Attendance", "Output", "Attendance"), table.placement = "H", add.lines=list(c('Sample', 'Relevant', 'Relevant', 'Relevant', 'Relevant', 'Full','Full','Full','Full'), c('Pre-trmt obs','Yes','Yes','Yes','Yes','Yes','Yes','No','No'), c('Neighbor ctrls','No', 'No', 'Yes', 'Yes', 'Yes','Yes','Yes','Yes'), c('Individual FEs', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes','Yes','No','No'), c('N','4,307','4,307','4,307','4,307','8,375','8.375','5,283','5,283')))
 
 ### Panel B — Treatment Effects Separately by Rank
 ## No irrelevant people, no neighbor controls
@@ -275,5 +275,79 @@ mean(final[post == 1 & Het == 0 & relevant == 1, prodnorm])
 mean(final[post == 1 & Het == 0 & relevant == 1, attendance])
 
 # combine models into latex table
-stargazer(rreg1_cluster, rreg2_cluster, rreg3_cluster, rreg4_cluster, rreg5_cluster, rreg6_cluster, rreg7_cluster, rreg8_cluster, type = "latex", keep = c("treatlowpost", "treatmedpost", "treathighpost"), header = FALSE, title = "Table A2: Panel B", dep.var.caption = "", column.labels = c("Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance", "Output (std. dev.)", "Attendance"))
+stargazer(rreg1_cluster, rreg2_cluster, rreg3_cluster, rreg4_cluster, rreg5_cluster, rreg6_cluster, rreg7_cluster, rreg8_cluster, type = "latex", keep = c("treatlowpost", "treatmedpost", "treathighpost"), header = FALSE, title = "Table A2: Panel B", dep.var.caption = "", column.labels = c("Output", "Attendance", "Output", "Attendance", "Output", "Attendance", "Output", "Attendance"), table.placement = "H",add.lines=list(c('Sample', 'Relevant', 'Relevant', 'Relevant', 'Relevant', 'Full','Full','Full','Full'), c('Pre-trmt obs','Yes','Yes','Yes','Yes','Yes','Yes','No','No'), c('Neighbor ctrls', 'No', 'No', 'Yes', 'Yes', 'Yes','Yes','Yes','Yes'), c('Individual FEs', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes','Yes','No','No'), c('N','4,307','4,307','4,307','4,307','8,375','8.375','5,283','5,283')))
 
+#===========================================================
+# Robustness Checks: Allow for more flexible functional form 
+#===========================================================
+
+#Generate days_experience variable from available data
+final[task_id == 1,days_experience := exper_task_lin1]
+final[task_id == 3,days_experience := exper_task_lin3]
+final[task_id == 4, days_experience := exper_task_lin4]
+final[task_id == 5,days_experience := exper_task_lin5]
+final[task_id == 6, days_experience := exper_task_lin6]
+final[task_id == 8, days_experience := exper_task_lin8]
+final[task_id == 9,days_experience := exper_task_lin9]
+final[task_id == 10, days_experience := exper_task_lin10]
+final[task_id == 11,days_experience := exper_task_lin11]
+final[task_id == 12, days_experience := exper_task_lin12]
+
+# Generate days_experience squared
+final[,days_experience_sq := days_experience^2]
+
+# Generate days_experience cubed
+final[,days_experience_cb := days_experience^3]
+
+#### Re-analyze Table IV including interaction terms between days_experience cubed and task_id dummies
+### Panel A: Pooled Treatment Effects
+## Without FE
+x <- c("posttreat", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "low_p", "med_p", "high_p", "treatlow", "treatmed", "treathigh", "irrellow", "irrelmed", "irrelhigh", "day_round", exper_task_lin, exper_task_sq, "task_id", neighbor_all)
+x <- paste(x, collapse = "+")
+
+# dependent variable = output
+reg1_check <- lm(formula(paste0("prodnorm", "~",x,"+days_experience_cb*task_id")), data = final)
+vcov_teamid <- cluster.vcov(reg1_check, final$team_id)
+reg1_check_cluster <- coeftest(reg1_check, vcov_teamid)
+
+# dependent variable = attendance
+reg2_check <- lm(formula(paste0("attendance", "~", x,"+days_experience_cb*task_id")), data = final)
+vcov_teamid <- cluster.vcov(reg2_check, final$team_id)
+reg2_check_cluster <- coeftest(reg2_check, vcov_teamid)
+
+# conditional on attendance - no FE
+x <- c("posttreat", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "low_p", "med_p", "high_p", "treatlow", "treatmed", "treathigh", "irrellow", "irrelmed", "irrelhigh", "day_round", exper_task_lin, exper_task_sq, "task_id", neighbor_all)
+x <- paste(x, collapse = "+")
+
+reg5_check <- lm(formula(paste0("prodnorm", "~", x, "+days_experience_cb*task_id")), data=final[attendance == 1,])
+vcov_teamid <- cluster.vcov(reg5_check, final[attendance == 1, team_id])
+reg5_check_cluster <- coeftest(reg5_check, vcov_teamid)
+
+# combine models into latex table
+stargazer(reg1_cluster, reg1_check_cluster, reg2_cluster, reg2_check_cluster, reg5_cluster, reg5_check_cluster, type = "latex", keep = "posttreat", header = FALSE, title = "Table 4 Panel A Robustness Check: Include experience cubed controls", dep.var.caption = "", column.labels = c("Output", "Output", "Attendance", "Attendance", "Output|Att", "Output|Att"), table.placement = "H",add.lines = list(c('Exper Cubed Controls','No','Yes', 'No', 'Yes', 'No', 'Yes'), c('Individual Fixed effects', 'No', 'No', 'Yes', 'Yes', 'No','No'), c('N','8,375','8,375','8,375','8,375','7,678','7,678')))
+
+### Panel B: Treatment Effects Separately by Rank
+## Without FE
+x <- c("treatlowpost", "treatmedpost", "treathighpost", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "low_p", "med_p", "high_p", "treatlow", "treatmed", "treathigh", "irrellow", "irrelmed", "irrelhigh", "day_round", exper_task_lin, exper_task_sq, "task_id", neighbor_all)
+x <- paste(x, collapse = "+")
+
+# dependent variable = output
+reg6_check <- lm(formula(paste0("prodnorm", "~",x, "+days_experience_cb*task_id")), data = final)
+vcov_teamid <- cluster.vcov(reg6_check, final$team_id)
+reg6_check_cluster <- coeftest(reg6_check, vcov_teamid)
+
+# dependent variable = attendance
+reg7_check <- lm(formula(paste0("attendance", "~",x,"+days_experience_cb*task_id")), data = final)
+vcov_teamid <- cluster.vcov(reg7_check, final$team_id)
+reg7_check_cluster <- coeftest(reg7_check, vcov_teamid)
+
+# conditional on attendance - no FE
+x <- c("treatlowpost", "treatmedpost", "treathighpost", "lowpost", "medpost", "highpost", "irrelpostlow", "irrelpostmed", "irrelposthigh", "low_p", "med_p", "high_p", "treatlow", "treatmed", "treathigh", "irrellow", "irrelmed", "irrelhigh", "day_round", exper_task_lin, exper_task_sq, "task_id", neighbor_all)
+x <- paste(x, collapse = "+")
+
+reg10_check <- lm(formula(paste0("prodnorm", "~", x, "+days_experience_cb*task_id")), data=final[attendance == 1,])
+vcov_teamid <- cluster.vcov(reg10_check, final[attendance == 1, team_id])
+reg10_check_cluster <- coeftest(reg10_check, vcov_teamid)
+
+# combine models into latex table
+stargazer(reg6_cluster, reg6_check_cluster, reg7_cluster, reg7_check_cluster, reg10_cluster, reg10_check_cluster, type = "latex", keep = c("treatlowpost", "treatmedpost", "treathighpost"), header = FALSE, title = "Table 4 Panel B Robustness Check: Include experience cubed controls", dep.var.caption = "", column.labels = c("Output", "Output", "Attendance", "Attendance", "Output|Att", "Output|Att"), table.placement = "H",add.lines = list(c('Exper Cubed Controls','No','Yes', 'No', 'Yes', 'No', 'Yes'), c('Individual Fixed effects', 'No', 'No', 'Yes', 'Yes', 'No','No'), c('N','8,375','8,375','8,375','8,375','7,678','7,678')))
